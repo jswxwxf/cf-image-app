@@ -33,8 +33,9 @@
 	},
 	"r2_buckets": [
 		{
+			"binding": "image_app_uploads",
 			"bucket_name": "image-app-uploads",
-			"binding": "image_app_uploads"
+			"preview_bucket_name": "image-app-uploads-preview"
 		}
 	]
 }
