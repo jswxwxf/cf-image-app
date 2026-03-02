@@ -1,8 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 /**
  * 极简上传 API：直接将文件存入 R2，不带后缀名
  * 遵循 KISS 原则，由存储桶元数据处理内容类型
