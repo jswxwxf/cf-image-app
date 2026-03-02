@@ -46,13 +46,41 @@ export function ImageList({ images }: Props) {
                 <h3 className="text-lg font-semibold text-slate-800 truncate max-w-[200px]">
                   {image.filename}
                 </h3>
-                <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                  分析中...
+                <span className={`px-3 py-1 text-xs font-medium rounded-full border ${image.analysis
+                  ? "bg-green-50 text-green-600 border-green-100"
+                  : "bg-blue-50 text-blue-600 border-blue-100"
+                  }`}>
+                  {image.analysis ? "分析完成" : "等待分析"}
                 </span>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 min-h-[100px] flex items-center justify-center italic text-slate-400">
-                {image.analysis || "图像分析结果将显示在此处 (后续集成 Workers AI)"}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 min-h-[100px]">
+                {!image.analysis ? (
+                  <div className="h-full flex items-center justify-center italic text-slate-400">
+                    图像分析结果将显示在此处 (后续集成 Workers AI)
+                  </div>
+                ) : typeof image.analysis === 'string' ? (
+                  <div className="text-slate-600 text-sm">
+                    {image.analysis}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {Array.isArray(image.analysis) && image.analysis.slice(0, 3).map((item, i: number) => (
+                      <div key={i} className="space-y-1">
+                        <div className="flex justify-between text-xs font-medium text-slate-500">
+                          <span className="uppercase tracking-wider">{item.label}</span>
+                          <span>{(item.score * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                            style={{ width: `${item.score * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

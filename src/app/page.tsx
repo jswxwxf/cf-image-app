@@ -32,7 +32,19 @@ export default function Home() {
 			});
 
 			if (response.ok) {
-				setUploadedImages(localPreviewImages);
+				const data = (await response.json()) as any;
+
+				// 将 API 返回的分析结果映射到本地预览列表中
+				const updatedImages = localPreviewImages.map(img => {
+					// 根据文件名匹配返回的结果
+					const result = data.results?.find((r: any) => r.name === img.filename);
+					return {
+						...img,
+						...result
+					};
+				});
+
+				setUploadedImages(updatedImages);
 			}
 		} catch (error) {
 			console.error("上传错误:", error);

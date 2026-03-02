@@ -37,5 +37,8 @@
 			"bucket_name": "image-app-uploads",
 			"preview_bucket_name": "image-app-uploads-preview"
 		}
-	]
+	],
+	"ai": {
+		"binding": "AI"
+	}
 }
