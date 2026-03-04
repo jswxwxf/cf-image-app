@@ -16,7 +16,7 @@ export async function uploadImageForAnalysis(file: File, env: any) {
     .run();
 
   // 3. 发送至 Queue 进行异步分析
-  await env.ANALYSIS_QUEUE.send(uuid);
+  await env.ANALYSIS_QUEUE.send(uuid, { contentType: "text" });
 
   return {
     id: uuid,
