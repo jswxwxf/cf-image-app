@@ -13,14 +13,11 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const files = formData.getAll("files");
-    const results = [];
-
-    for (const fileCandidate of files) {
-      if (fileCandidate instanceof File) {
-        const result = await uploadImageForAnalysis(fileCandidate, env);
-        results.push(result);
-      }
-    }
+    const results = await Promise.all(
+      files
+        .filter((file): file is File => file instanceof File)
+        .map((file) => uploadImageForAnalysis(file, env))
+    );
 
     return NextResponse.json(
       { message: "上传成功，正在后台进行 AI 分析", results },

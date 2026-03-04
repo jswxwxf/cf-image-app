@@ -15,17 +15,16 @@ export default function Home() {
 		if (!files || files.length === 0) return;
 
 		setIsUploading(true);
-		const localPreviewImages: UserImage[] = [];
 		const formData = new FormData();
 
-		for (let i = 0; i < files.length; i++) {
-			const file = files[i];
+		const filesArray = Array.from(files);
+		const localPreviewImages: UserImage[] = filesArray.map((file) => {
 			formData.append("files", file);
-			localPreviewImages.push({
+			return {
 				url: URL.createObjectURL(file),
 				filename: file.name,
-			});
-		}
+			};
+		});
 
 		try {
 			const response = await fetch("/api/files", {
