@@ -1,6 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
-import { uploadImageForAnalysis } from "@/lib/images";
+import { uploadImageForAnalysis, retrieveImageAnalysisQuery } from "@/lib/images";
+import type { ImageQueryResult } from "@/types";
 
 /**
  * 极简上传 API：直接将文件存入 R2，不带后缀名
@@ -28,5 +29,33 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("上传 API 异常:", error);
     return NextResponse.json({ error: "上传处理失败" }, { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { env } = getCloudflareContext();
+    const searchParams = request.nextUrl.searchParams;
+    const imageIds = searchParams.get("image_ids")?.split(",");
+
+    if (!imageIds || imageIds.length === 0) {
+      return NextResponse.json({ error: "未提供图像 ID" }, { status: 400 });
+    }
+
+    const allResults = await retrieveImageAnalysisQuery(imageIds, env);
+
+    if (allResults.length === 0) {
+      return NextResponse.json({ error: "未找到对应的图像记录" }, { status: 404 });
+    }
+
+    const imageAnalysis = allResults.map((row: ImageQueryResult) => ({
+      id: row.id,
+      analysis: row.analysis ? JSON.parse(row.analysis as string) : false,
+    }));
+
+    return NextResponse.json(imageAnalysis);
+  } catch (error) {
+    console.error("获取分析结果 API 异常:", error);
+    return NextResponse.json({ error: "获取分析结果失败" }, { status: 500 });
   }
 }

@@ -21,3 +21,12 @@ export interface UserImage {
    */
   analysis?: string | AnalysisResult[];
 }
+
+/**
+ * 数据库图像查询结果接口
+ */
+export interface ImageQueryResult {
+  id: string;
+  analysis: string | null;
+  completed: number;
+}

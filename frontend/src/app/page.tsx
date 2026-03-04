@@ -1,8 +1,10 @@
 "use client";
 
-import React, { ChangeEvent, useState } from "react";
+import React, { useState } from "react";
 import { ImageList } from "@/components/ImageList";
-import { UserImage } from "@/types";
+
+import type { ChangeEvent } from "react";
+import type { UserImage } from "@/types";
 
 export default function Home() {
 	const [uploadedImages, setUploadedImages] = useState<UserImage[]>([]);

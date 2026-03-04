@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { UserImage } from "@/types";
+import type { UserImage } from "@/types";
 
 interface Props {
   images: Array<UserImage>;

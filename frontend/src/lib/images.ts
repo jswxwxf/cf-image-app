@@ -1,3 +1,5 @@
+import type { ImageQueryResult } from "@/types";
+
 /**
  * 图像上传辅助函数：处理文件上传至 R2、D1 记录初始化及发送异步消息队列
  */
@@ -24,4 +26,22 @@ export async function uploadImageForAnalysis(file: File, env: any) {
     type: file.type,
     status: "processing",
   };
+}
+
+/**
+ * 获取图像分析结果的查询函数
+ */
+export async function retrieveImageAnalysisQuery(imageIds: string[], env: any) {
+  if (imageIds.length === 0) return [];
+
+  // 使用 IN 语法一次性查询所有 ID，比循环查询更高效
+  // 注意：D1 的 bind 对数组支持有限，这里采用安全的方式构建占位符
+  const placeholders = imageIds.map((_, i) => `?${i + 1}`).join(",");
+  const { results } = await env.DB.prepare(
+    `SELECT id, analysis, completed FROM images WHERE id IN (${placeholders})`
+  )
+    .bind(...imageIds)
+    .all();
+
+  return (results || []) as ImageQueryResult[];
 }
