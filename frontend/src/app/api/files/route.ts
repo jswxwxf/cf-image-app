@@ -1,6 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
-import { uploadImageForAnalysis, retrieveImageAnalysisQuery } from "@/lib/images";
+import { uploadImageForAnalysis, retrieveImageAnalysisQuery } from "@/server/services/image";
 import type { ImageQueryResult } from "@/types";
 
 /**
