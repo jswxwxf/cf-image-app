@@ -1,41 +1,28 @@
 /**
- * Welcome to Cloudflare Workers!
+ * 欢迎使用 Cloudflare Workers！
  *
- * This is a template for a Queue consumer: a Worker that can consume from a
- * Queue: https://developers.cloudflare.com/queues/get-started/
+ * 这是一个队列消费者（Queue consumer）模板：一个能处理来自队列消息的 Worker。
+ * 详情请参阅：https://developers.cloudflare.com/queues/get-started/
  *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
+ * - 在终端运行 `npm run dev` 启动开发服务器
+ * - 访问 http://localhost:8787/ 查看 Worker 运行情况
+ * - 运行 `npm run deploy` 发布你的 Worker
  *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
+ * 在 `wrangler.jsonc` 中为 Worker 绑定资源。添加绑定后，
+ * 可以通过 `npm run cf-typegen` 重新生成 `Env` 对象的类型定义。
  *
- * Learn more at https://developers.cloudflare.com/workers/
+ * 更多详情：https://developers.cloudflare.com/workers/
  */
 
 export default {
-	// Our fetch handler is invoked on a HTTP request: we can send a message to a queue
-	// during (or after) a request.
-	// https://developers.cloudflare.com/queues/platform/javascript-apis/#producer
-	async fetch(req, env, ctx): Promise<Response> {
-		// To send a message on a queue, we need to create the queue first
-		// https://developers.cloudflare.com/queues/get-started/#3-create-a-queue
-		await env.MY_QUEUE.send({
-			url: req.url,
-			method: req.method,
-			headers: Object.fromEntries(req.headers),
-		});
-		return new Response('Sent message to the queue');
-	},
-	// The queue handler is invoked when a batch of messages is ready to be delivered
-	// https://developers.cloudflare.com/queues/platform/javascript-apis/#messagebatch
+	// 当一批消息准备好交付时，将调用 queue 处理函数
+	// 参考：https://developers.cloudflare.com/queues/platform/javascript-apis/#messagebatch
 	async queue(batch, env): Promise<void> {
-		// A queue consumer can make requests to other endpoints on the Internet,
-		// write to R2 object storage, query a D1 Database, and much more.
+		// 队列消费者可以向互联网上的其他端点发起请求、
+		// 写入 R2 对象存储、查询 D1 数据库等。
 		for (let message of batch.messages) {
-			// Process each message (we'll just log these)
-			console.log(`message ${message.id} processed: ${JSON.stringify(message.body)}`);
+			// 处理每条消息（这里仅将其记录在日志中）
+			console.log(`消息 ${message.id} 已处理：${JSON.stringify(message.body)}`);
 		}
 	},
 } satisfies ExportedHandler<Env, Error>;
