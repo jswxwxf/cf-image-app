@@ -9,6 +9,10 @@ export interface AnalysisResult {
  */
 export interface UserImage {
   /**
+   * 图像唯一标识 ID
+   */
+  id?: string;
+  /**
    * 图像名称
    */
   filename: string;

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { ImageList } from "@/components/ImageList";
+import { uploadImages } from "@/app/service/image";
 
 import type { ChangeEvent } from "react";
 import type { UserImage } from "@/types";
@@ -15,38 +16,10 @@ export default function Home() {
 		if (!files || files.length === 0) return;
 
 		setIsUploading(true);
-		const formData = new FormData();
-
-		const filesArray = Array.from(files);
-		const localPreviewImages: UserImage[] = filesArray.map((file) => {
-			formData.append("files", file);
-			return {
-				url: URL.createObjectURL(file),
-				filename: file.name,
-			};
-		});
 
 		try {
-			const response = await fetch("/api/files", {
-				method: "POST",
-				body: formData,
-			});
-
-			if (response.ok) {
-				const data = (await response.json()) as any;
-
-				// 将 API 返回的分析结果映射到本地预览列表中
-				const updatedImages = localPreviewImages.map(img => {
-					// 根据文件名匹配返回的结果
-					const result = data.results?.find((r: any) => r.name === img.filename);
-					return {
-						...img,
-						...result
-					};
-				});
-
-				setUploadedImages(updatedImages);
-			}
+			const updatedImages = await uploadImages(files);
+			setUploadedImages(updatedImages);
 		} catch (error) {
 			console.error("上传错误:", error);
 		} finally {
