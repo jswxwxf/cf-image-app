@@ -15,8 +15,7 @@
 	"r2_buckets": [
 		{
 			"binding": "IMAGE_APP_UPLOADS",
-			"bucket_name": "image-app-uploads",
-			"preview_bucket_name": "image-app-uploads-preview"
+			"bucket_name": "image-app-uploads-preview"
 		}
 	],
 	"d1_databases": [
@@ -27,16 +26,26 @@
 		}
 	],
 	"queues": {
+		"producers": [
+			{
+				"binding": "IMAGE_ANALYSIS_QUEUE",
+				"queue": "image-analysis-preview"
+			}
+		],
 		"consumers": [
 			{
-				"queue": "image-analysis-preview",
-				"max_batch_size": 10,
-				"max_batch_timeout": 30
+				"queue": "image-analysis-preview"
 			}
 		]
 	},
 	"env": {
 		"production": {
+			"r2_buckets": [
+				{
+					"binding": "IMAGE_APP_UPLOADS",
+					"bucket_name": "image-app-uploads"
+				}
+			],
 			"d1_databases": [
 				{
 					"binding": "DB",
@@ -45,11 +54,15 @@
 				}
 			],
 			"queues": {
+				"producers": [
+					{
+						"binding": "IMAGE_ANALYSIS_QUEUE",
+						"queue": "image-analysis"
+					}
+				],
 				"consumers": [
 					{
-						"queue": "image-analysis",
-						"max_batch_size": 10,
-						"max_batch_timeout": 30
+						"queue": "image-analysis"
 					}
 				]
 			}
