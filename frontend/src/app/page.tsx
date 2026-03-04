@@ -80,6 +80,7 @@ export default function Home() {
 						>
 							<input
 								type="file"
+								accept="image/*"
 								multiple
 								onChange={handleChange}
 								className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
