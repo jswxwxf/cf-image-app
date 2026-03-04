@@ -1,14 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
 import { ImageList } from "@/components/ImageList";
-import { uploadImages } from "@/app/service/image";
-
-import type { ChangeEvent } from "react";
+import { uploadImages, fetchAnalysis } from "@/app/service/image";
+import { ChangeEvent, useState, useEffect, useRef } from "react";
 import type { UserImage } from "@/types";
 
-export default function Home() {
+/**
+ * 自定义 Hook：管理已上传图像的状态并自动轮询 AI 分析结果
+ */
+function useImageAnalysisPolling() {
 	const [uploadedImages, setUploadedImages] = useState<UserImage[]>([]);
+	const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+	useEffect(() => {
+		const stopPolling = () => {
+			if (pollTimerRef.current) {
+				clearInterval(pollTimerRef.current);
+				pollTimerRef.current = null;
+			}
+		};
+
+		const hasPending = uploadedImages.some((img) => img.id && !img.analysis);
+
+		if (hasPending && !pollTimerRef.current) {
+			pollTimerRef.current = setInterval(async () => {
+				try {
+					const updated = await fetchAnalysis(uploadedImages);
+					// 只有当数据真正发生变化时才更新状态
+					const hasNewAnalysis = updated.some(
+						(img, idx) => img.analysis !== uploadedImages[idx]?.analysis
+					);
+					if (hasNewAnalysis) {
+						setUploadedImages(updated);
+					}
+				} catch (err) {
+					console.error("轮询分析结果失败:", err);
+				}
+			}, 2000);
+		}
+
+		// 当所有分析完成或组件卸载时清理定时器
+		if (!hasPending || uploadedImages.length === 0) {
+			stopPolling();
+		}
+
+		return () => stopPolling();
+	}, [uploadedImages]);
+
+	return [uploadedImages, setUploadedImages] as const;
+}
+
+export default function Home() {
+	const [uploadedImages, setUploadedImages] = useImageAnalysisPolling();
 	const [isUploading, setIsUploading] = useState(false);
 
 	const handleChange = async (event: ChangeEvent<HTMLInputElement>) => {
