@@ -29,39 +29,64 @@ export default {
 	},
 	// 当一批消息准备好交付时，将调用 queue 处理函数
 	async queue(batch, env): Promise<void> {
+		const MAX_RETRIES = 3;
+
 		for (let message of batch.messages) {
-			const image_id = message.body;
-			const image = await env.IMAGE_APP_UPLOADS!.get(image_id);
+			const image_id = message.body as string;
 
-			if (image === null) {
-				console.log(`无法找到图片 ID: ${image_id}`);
-				// 标记重试，可能图片还没上传完成
-				message.retry();
-				continue;
+			try {
+				// 1. 获取图片
+				const image = await env.IMAGE_APP_UPLOADS!.get(image_id);
+				if (image === null) {
+					throw new Error('IMAGE_NOT_FOUND');
+				}
+
+				console.log(`正在分析图片: ${image_id}...`);
+
+				// 2. 将 R2 数据转换为 AI 模型可接受的格式
+				const inputs = {
+					image: Array.from(new Uint8Array(await image.arrayBuffer())),
+				};
+
+				// 3. 调用 Cloudflare Workers AI 进行图像分类
+				const analysis = await env.AI!.run('@cf/microsoft/resnet-50', inputs);
+
+				// 4. 更新 D1 数据库记录为成功
+				await env.DB.prepare('UPDATE images SET completed = 1, analysis = ?1 WHERE id = ?2')
+					.bind(JSON.stringify(analysis), image_id)
+					.run();
+
+				// 5. 处理完成后删除 R2 中的原始临时图片
+				await env.IMAGE_APP_UPLOADS!.delete(image_id);
+
+				// 确认消息处理完成
+				message.ack();
+				console.log(`图片 ${image_id} 分析完成。`);
+			} catch (err) {
+				console.error(`处理图片 ${image_id} 失败:`, err);
+
+				// 处理所有失败情况：无论是 R2 找不到还是 AI 报错
+				const record = await env.DB.prepare('SELECT retry_count FROM images WHERE id = ?1')
+					.bind(image_id)
+					.first<{ retry_count: number }>();
+
+				const currentRetries = record?.retry_count || 0;
+
+				if (currentRetries >= MAX_RETRIES) {
+					console.warn(`图片 ${image_id} 已达到最大重试次数 (${MAX_RETRIES})，标记为失败。`);
+					// 标记为完成但无分析结果（analysis = NULL），使前端停止轮询
+					await env.DB.prepare('UPDATE images SET completed = 1, analysis = NULL WHERE id = ?1')
+						.bind(image_id)
+						.run();
+					message.ack();
+				} else {
+					// 增加重试计数并让队列重发消息
+					await env.DB.prepare('UPDATE images SET retry_count = retry_count + 1 WHERE id = ?1')
+						.bind(image_id)
+						.run();
+					message.retry();
+				}
 			}
-
-			console.log(`正在分析图片: ${image_id}...`);
-
-			// 将 R2 数据转换为 AI 模型可接受的格式
-			const inputs = {
-				image: Array.from(new Uint8Array(await image.arrayBuffer())),
-			};
-
-			// 调用 Cloudflare Workers AI 进行图像分类
-			const analysis = await env.AI!.run('@cf/microsoft/resnet-50', inputs);
-
-			// 更新 D1 数据库记录
-			await env.DB.prepare('UPDATE images SET completed = 1, analysis = ?1 WHERE id = ?2')
-				.bind(JSON.stringify(analysis), image_id)
-				.run();
-
-			// 处理完成后删除 R2 中的原始临时图片（如果业务需要）
-			await env.IMAGE_APP_UPLOADS!.delete(image_id);
-
-			// 确认消息处理完成，从队列中移除
-			message.ack();
-
-			console.log(`图片 ${image_id} 分析完成并已更新数据库。`);
 		}
 	},
 } satisfies ExportedHandler<Env, string>;

@@ -1,0 +1,2 @@
+-- Migration number: 0002 	 2026-03-04T06:51:08.797Z
+ALTER TABLE images ADD COLUMN retry_count INTEGER DEFAULT 0;

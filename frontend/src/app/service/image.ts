@@ -58,16 +58,17 @@ export async function fetchAnalysis(images: UserImage[]): Promise<UserImage[]> {
     const remoteResults = (await response.json()) as Array<{
       id: string;
       analysis: any;
+      completed: number;
     }>;
 
     // 使用函数式 map 生成更新后的列表，确保触发 React 状态更新
     return images.map((img) => {
       const match = remoteResults.find((r) => r.id === img.id);
-      // 如果查询到了结果且包含分析信息，则更新
-      if (match?.analysis) {
+      // 只要后端返回了已完成状态或新的分析数据，就进行同步
+      if (match && (match.completed === 1 || match.analysis !== undefined)) {
         return {
           ...img,
-          analysis: match.analysis,
+          ...match,
         };
       }
       return img;

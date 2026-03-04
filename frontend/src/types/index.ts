@@ -22,8 +22,15 @@ export interface UserImage {
   url: string;
   /**
    * 图像分析结果 (可选)
+   * undefined: 正在分析中
+   * false: 分析失败
+   * AnalysisResult[]: 分析成功后的标签结果
    */
-  analysis?: string | AnalysisResult[];
+  analysis?: AnalysisResult[] | false;
+  /**
+   * 是否已完成处理 (0: 未完成, 1: 已完成)
+   */
+  completed?: number;
 }
 
 /**

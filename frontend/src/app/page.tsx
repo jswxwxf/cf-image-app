@@ -20,17 +20,17 @@ function useImageAnalysisPolling() {
 			}
 		};
 
-		const hasPending = uploadedImages.some((img) => img.id && !img.analysis);
+		const hasPending = uploadedImages.some((img) => img.id && img.completed !== 1);
 
 		if (hasPending && !pollTimerRef.current) {
 			pollTimerRef.current = setInterval(async () => {
 				try {
 					const updated = await fetchAnalysis(uploadedImages);
-					// 只有当数据真正发生变化时才更新状态
-					const hasNewAnalysis = updated.some(
-						(img, idx) => img.analysis !== uploadedImages[idx]?.analysis
+					// 只有当数据（分析结果或完成状态）真正发生变化时才更新状态
+					const hasChange = updated.some(
+						(img, idx) => img.completed !== uploadedImages[idx]?.completed
 					);
-					if (hasNewAnalysis) {
+					if (hasChange) {
 						setUploadedImages(updated);
 					}
 				} catch (err) {

@@ -45,10 +45,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "未找到对应的图像记录" }, { status: 404 });
     }
 
-    const imageAnalysis = allResults.map((row: ImageQueryResult) => ({
-      id: row.id,
-      analysis: row.analysis ? JSON.parse(row.analysis as string) : false,
-    }));
+    const imageAnalysis = allResults.map((row: ImageQueryResult) => {
+      let analysis: any = undefined; // 默认：进行中
+
+      if (row.completed === 1) {
+        // 已完成：解析 JSON 或标记为失败 (false)
+        analysis = row.analysis ? JSON.parse(row.analysis) : false;
+      }
+
+      return {
+        id: row.id,
+        completed: row.completed,
+        analysis,
+      };
+    });
 
     return NextResponse.json(imageAnalysis);
   } catch (error) {

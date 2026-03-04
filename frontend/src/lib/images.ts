@@ -24,7 +24,7 @@ export async function uploadImageForAnalysis(file: File, env: any) {
     id: uuid,
     name: file.name,
     type: file.type,
-    status: "processing",
+    completed: 0,
   };
 }
 
