@@ -52,7 +52,7 @@ jobs:
       # --- 数据库迁移 (D1) ---
       # 放在部署代码之前，确保数据库结构先准备好
       - name: Run D1 Migrations
-        run: npx wrangler d1 migrations apply DB --remote ${{ env.DEPLOY_ENV }} --yes
+        run: npx wrangler d1 migrations apply DB --remote ${{ env.DEPLOY_ENV }}
         working-directory: frontend
 
       - name: Build and Deploy Frontend
