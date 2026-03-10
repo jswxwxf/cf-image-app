@@ -41,6 +41,9 @@
 	"env": {
 		"production": {
 			"name": "image-analysis-consumer",
+			"ai": {
+				"binding": "AI"
+			},
 			"r2_buckets": [
 				{
 					"binding": "IMAGE_APP_UPLOADS",
